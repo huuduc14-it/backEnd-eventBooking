@@ -1,0 +1,176 @@
+
+-- 1. USER TABLES
+CREATE TABLE users (
+    user_id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    full_name       VARCHAR(100) NOT NULL,
+    email           VARCHAR(120) UNIQUE NOT NULL,
+    password_hash   VARCHAR(255) NOT NULL,
+    phone           VARCHAR(20),
+    avatar_url      TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE organizers (
+    organizer_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT NOT NULL,
+    organization_name VARCHAR(150),
+    verified        BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+
+-- 2. EVENT CORE
+
+CREATE TABLE categories (
+    category_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE artists (
+    artist_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(150) NOT NULL,
+    bio         TEXT,
+    image_url   TEXT
+);
+
+CREATE TABLE events (
+    event_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    organizer_id  BIGINT NOT NULL,
+    category_id   BIGINT,
+    title         VARCHAR(200) NOT NULL,
+    description   TEXT,
+    location_name VARCHAR(200) NOT NULL,
+    address       TEXT,
+    start_time    DATETIME NOT NULL,
+    end_time      DATETIME,
+    thumbnail_url TEXT,
+    video_url     TEXT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (organizer_id) REFERENCES organizers(organizer_id),
+    FOREIGN KEY (category_id) REFERENCES categories(category_id)
+);
+
+CREATE TABLE event_artists (
+    event_id   BIGINT,
+    artist_id  BIGINT,
+    PRIMARY KEY (event_id, artist_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id),
+    FOREIGN KEY (artist_id) REFERENCES artists(artist_id)
+);
+
+
+-- 3. TICKET & BOOKING
+CREATE TABLE ticket_types (
+    ticket_type_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_id       BIGINT NOT NULL,
+    name           VARCHAR(100) NOT NULL,
+    price          DECIMAL(12,2) NOT NULL,
+    total_quantity INT NOT NULL,
+    remaining      INT NOT NULL,
+    description    TEXT,
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+CREATE TABLE seat_maps (
+    seat_map_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    event_id    BIGINT NOT NULL,
+    map_json    JSON NOT NULL,
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+CREATE TABLE seats (
+    seat_id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    seat_map_id    BIGINT NOT NULL,
+    section        VARCHAR(100),
+    row_label      VARCHAR(50),
+    seat_number    VARCHAR(50),
+    ticket_type_id BIGINT,
+    is_available   BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (seat_map_id) REFERENCES seat_maps(seat_map_id),
+    FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(ticket_type_id)
+);
+
+CREATE TABLE bookings (
+    booking_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id       BIGINT NOT NULL,
+    event_id      BIGINT NOT NULL,
+    total_amount  DECIMAL(12,2) NOT NULL,
+    payment_status ENUM('pending','paid','failed') DEFAULT 'pending',
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+CREATE TABLE booking_items (
+    item_id        BIGINT AUTO_INCREMENT PRIMARY KEY,
+    booking_id     BIGINT NOT NULL,
+    ticket_type_id BIGINT NOT NULL,
+    seat_id        BIGINT,
+    price          DECIMAL(12,2) NOT NULL,
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id),
+    FOREIGN KEY (ticket_type_id) REFERENCES ticket_types(ticket_type_id),
+    FOREIGN KEY (seat_id) REFERENCES seats(seat_id)
+);
+
+CREATE TABLE tickets (
+    ticket_id    BIGINT AUTO_INCREMENT PRIMARY KEY,
+    booking_item BIGINT NOT NULL,
+    qr_code      VARCHAR(255) UNIQUE NOT NULL,
+    is_used      BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (booking_item) REFERENCES booking_items(item_id)
+);
+
+
+-- 4. USER EXPERIENCE
+
+CREATE TABLE reviews (
+    review_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id     BIGINT NOT NULL,
+    event_id    BIGINT NOT NULL,
+    rating      INT CHECK (rating BETWEEN 1 AND 5),
+    comment     TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+CREATE TABLE notifications (
+    notification_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id         BIGINT NOT NULL,
+    event_id        BIGINT,
+    message         TEXT NOT NULL,
+    is_read         BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+CREATE TABLE favorites (
+    user_id  BIGINT,
+    event_id BIGINT,
+    PRIMARY KEY (user_id, event_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+
+-- 5. PROMOTION & DISCOUNT
+CREATE TABLE promotions (
+    promo_id      BIGINT AUTO_INCREMENT PRIMARY KEY,
+    code          VARCHAR(50) UNIQUE NOT NULL,
+    description   TEXT,
+    discount_type ENUM('percent', 'fixed'),
+    discount_value DECIMAL(12,2),
+    start_date    DATE,
+    end_date      DATE,
+    event_id      BIGINT,
+    FOREIGN KEY (event_id) REFERENCES events(event_id)
+);
+
+CREATE TABLE booking_promotions (
+    booking_id BIGINT,
+    promo_id   BIGINT,
+    PRIMARY KEY (booking_id, promo_id),
+    FOREIGN KEY (booking_id) REFERENCES bookings(booking_id),
+    FOREIGN KEY (promo_id) REFERENCES promotions(promo_id)
+);
