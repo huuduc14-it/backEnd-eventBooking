@@ -90,9 +90,10 @@ module.exports = {
       }
 
       // 4. Tạo token JWT
+
       const token = jwt.sign(
-        { id: user.id, email: user.email },
-        process.env.JWT_SECRET || "SECRET_KEY",
+        { id: user.user_id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || "CHIECKHANGIOAM",
         { expiresIn: "7d" }
       );
 
@@ -101,7 +102,7 @@ module.exports = {
         success: true,
         message: "Đăng nhập thành công",
         user: {
-          id: user.id,
+          id: user.user_id,
           full_name: user.full_name,
           email: user.email,
         },

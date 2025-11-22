@@ -1,10 +1,10 @@
 const db = require("../config/db");
 
 module.exports = {
-  createUser: (email, hashedPassword, name, callback) => {
+  createUser: (name, email, hashedPassword, callback) => {
     db.query(
       "INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)",
-      [email, hashedPassword, name],
+      [name, email, hashedPassword],
       callback
     );
   },
