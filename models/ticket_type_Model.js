@@ -1,12 +1,15 @@
 const db = require("../config/db");
 
 class TicketTypeModel {
-  static async getByEventId(eventId) {
-    const [rows] = await db
-      .promise()
-      .execute(`SELECT * FROM ticket_types WHERE event_id = ?`)[eventId];
+static async getByEventId(eventId) {
+    const [rows] = await db.promise().execute(
+        `SELECT ticket_type_id, name, price, total_quantity, remaining, description 
+         FROM ticket_types 
+         WHERE event_id = ?`, 
+        [eventId]
+    );
     return rows;
-  }
+}
   // CRUD
 
   static async add(eventId, data) {

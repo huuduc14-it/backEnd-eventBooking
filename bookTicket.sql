@@ -1,4 +1,5 @@
-CREATE DATABASE IF NOT EXISTS bookTicket;
+DROP DATABASE IF EXISTS bookTicket;
+CREATE DATABASE bookTicket;
 USE bookTicket;
 
 CREATE TABLE users (
@@ -125,7 +126,7 @@ CREATE TABLE reviews (
     review_id   BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id     BIGINT NOT NULL,
     event_id    BIGINT NOT NULL,
-    rating      INT CHECK (rating BETWEEN 1 AND 5),
+    rating      INT NOT NULL CHECK (rating BETWEEN 1 AND 5),
     comment     TEXT,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
@@ -181,4 +182,14 @@ INSERT INTO categories (name) VALUES
 
 INSERT INTO events (user_id, category_id, title, description, location_name, address, start_time, end_time, thumbnail_url)
 VALUES
-(1, 1, 'Sky Tour 2025', 'Live concert', 'Quan 7 Stadium', 'District 7, HCMC', '2025-12-20 19:00:00', '2025-12-20 22:00:00',  "http://10.0.2.2/api/public/thumbnails/atsh.webp");
+(1, 1, 'Sky Tour 2025', 'Live concert', 'Quan 7 Stadium', 'District 7, HCMC', '2025-12-20 19:00:00', '2025-12-20 22:00:00',  "http://10.0.2.2:3000/public/thumbnails/atsh.webp");
+
+INSERT INTO artists (name, bio, image_url) VALUES
+('Sơn Tùng M-TP', 'Vietnamese pop singer and songwriter.', 'http://10.0.2.2:3000/public/images/sontung.jpg'),
+('Binz', 'Vietnamese rapper and music producer.', 'http://10.0.2.2:3000/public/images/binz.jpg'),
+('AMEE', 'Vietnamese pop female singer.', 'http://10.0.2.2:3000/public/images/amee.webp');
+
+INSERT INTO event_artists (event_id, artist_id) VALUES
+(1, 1),
+(1, 2),
+(1, 3);
