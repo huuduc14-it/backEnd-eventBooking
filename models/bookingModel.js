@@ -1,9 +1,9 @@
 const db = require("../config/db");
-const { v4: uuidv4 } = require('uuid'); // Run: npm install uuid
+const { v4: uuidv4 } = require("uuid"); // Run: npm install uuid
 
 class BookingModel {
   static async createBooking(userId, eventId, items) {
-    const conn = db.promise() // Get dedicated connection
+    const conn = db.promise(); // Get dedicated connection
     try {
       await conn.beginTransaction(); // START TRANSACTION
 
@@ -13,7 +13,7 @@ class BookingModel {
       for (const item of items) {
         // Lock the row (FOR UPDATE) so no one else can buy this specific ticket type while we check
         const [rows] = await conn.execute(
-          'SELECT price, remaining FROM ticket_types WHERE ticket_type_id = ? FOR UPDATE', 
+          "SELECT price, remaining FROM ticket_types WHERE ticket_type_id = ? FOR UPDATE",
           [item.ticket_type_id]
         );
 
@@ -21,7 +21,9 @@ class BookingModel {
         const ticketInfo = rows[0];
 
         if (ticketInfo.remaining < item.quantity) {
-          throw new Error(`Not enough tickets! Only ${ticketInfo.remaining} left.`);
+          throw new Error(
+            `Not enough tickets! Only ${ticketInfo.remaining} left.`
+          );
         }
 
         totalAmount += Number(ticketInfo.price) * item.quantity;
@@ -61,13 +63,83 @@ class BookingModel {
       }
 
       await conn.commit(); // SAVE EVERYTHING
-     
-      return { bookingId, totalAmount };
 
+      return { bookingId, totalAmount };
     } catch (err) {
       await conn.rollback(); // UNDO EVERYTHING IF ERROR
       throw err;
     }
+  }
+
+  static async verifyTicket(qrCode) {
+    const conn = db.promise(); // or await db.promise().getConnection() if using pool transaction
+
+    // 1. Find Ticket
+    const [rows] = await conn.execute(
+      `SELECT t.ticket_id, t.is_used, e.title as event_title, tt.name as ticket_name 
+         FROM tickets t
+         JOIN booking_items bi ON t.booking_item = bi.item_id
+         JOIN bookings b ON bi.booking_id = b.booking_id
+         JOIN events e ON b.event_id = e.event_id
+         JOIN ticket_types tt ON bi.ticket_type_id = tt.ticket_type_id
+         WHERE t.qr_code = ?`,
+      [qrCode]
+    );
+
+    if (rows.length === 0) {
+      return { status: "INVALID", message: "Ticket not found" };
+    }
+
+    const ticket = rows[0];
+
+    // 2. Check if already used
+    if (ticket.is_used) {
+      return {
+        status: "ALREADY_USED",
+        message: `Ticket already checked in! (${ticket.ticket_name})`,
+        data: ticket,
+      };
+    }
+
+    // 3. Mark as Used
+    await conn.execute(
+      "UPDATE tickets SET is_used = TRUE WHERE ticket_id = ?",
+      [ticket.ticket_id]
+    );
+
+    return {
+      status: "SUCCESS",
+      message: "Check-in Successful",
+      data: ticket,
+    };
+  }
+  static async getMyTickets(userId) {
+    const db = require("../config/db"); // Use your DB pool
+    const conn = db.promise();
+
+    // We select individual tickets so each row has 1 QR Code
+    const sql = `
+        SELECT 
+            b.booking_id,
+            e.title AS event_title,
+            DATE_FORMAT(e.start_time, '%Y-%m-%d %H:%i') AS start_time,
+            e.location_name,
+            tt.name AS ticket_name,
+            bi.price AS total_amount,
+            t.qr_code,
+            1 AS quantity,
+            t.is_used
+        FROM tickets t
+        JOIN booking_items bi ON t.booking_item = bi.item_id
+        JOIN bookings b ON bi.booking_id = b.booking_id
+        JOIN events e ON b.event_id = e.event_id
+        JOIN ticket_types tt ON bi.ticket_type_id = tt.ticket_type_id
+        WHERE b.user_id = ?
+        ORDER BY b.created_at DESC
+    `;
+
+    const [rows] = await conn.execute(sql, [userId]);
+    return rows;
   }
 }
 
