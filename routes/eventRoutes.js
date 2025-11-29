@@ -6,7 +6,7 @@ const upload = require("../config/multer");
 
 router.post("/create-event", authMiddleware, upload.single('thumbnail') ,eventController.requestCreateEvent)
 router.get("/:id/seats", eventController.getEventSeats)
-router.get("/:id/tickets", eventController.getEventTickets);
+router.get("/:id/tickets",eventController.getEventTickets);
 
 
 module.exports = router

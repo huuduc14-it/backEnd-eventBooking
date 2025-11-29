@@ -15,7 +15,8 @@ exports.requestCreateEvent = async (req, res) => {
     } = req.body;
 
     // 2. HANDLE THUMBNAIL (File vs String)
-    let finalThumbnailUrl = req.body.thumbnail_url; 
+    let finalThumbnailUrl = null;
+    // let finalThumbnailUrl = req.body.thumbnail_url; 
     
     if (req.file) {
       // If file uploaded, override with generated URL
@@ -60,17 +61,17 @@ exports.requestCreateEvent = async (req, res) => {
     const userId = req.user.id;
 
     // 5. CALL MODEL
-    const newEventId = await EventModel.createFullEvent({
+const newEventId = await EventModel.createFullEvent({
       userId,
       category_id,
       title,
-      description,
-      location_name,
-      address,
+      description: description || null,     // <--- FIX
+      location_name: location_name || null, // <--- FIX
+      address: address || null,             // <--- FIX
       start_time,
-      end_time,
-      thumbnail_url: finalThumbnailUrl, // <--- FIX: Use the calculated URL
-      artist_ids,
+      end_time: end_time || null,           // <--- FIX
+      thumbnail_url: finalThumbnailUrl,     // <--- ALREADY HANDLED (is null if empty)
+      artist_ids: artist_ids || [],
       tickets,
     });
 
