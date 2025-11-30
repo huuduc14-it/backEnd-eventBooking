@@ -21,6 +21,8 @@ const profileRoute = require("./routes/profileRoute");
 app.use("/api/profile", profileRoute);
 const ticketRoutes = require("./routes/ticketRoutes");
 app.use("/api/tickets", ticketRoutes);
+const organizerRoutes = require("./routes/organizerRoutes");
+app.use("/api/organizer", organizerRoutes);
 
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`Server running on port ${PORT}`)

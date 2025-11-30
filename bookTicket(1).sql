@@ -189,3 +189,25 @@ INSERT INTO event_artists (event_id, artist_id) VALUES
 (1, 1),
 (1, 2),
 (1, 3);
+
+--thêm cột role và is_verifiedd vào user 
+-- ALTER TABLE users 
+-- ADD COLUMN role ENUM('user', 'organizer', 'admin') DEFAULT 'user',
+-- ADD COLUMN is_verified BOOLEAN DEFAULT FALSE,
+-- ADD COLUMN organization_name VARCHAR(255) NULL;
+-- -- 2. Thêm cột 'organizer_id' vào bảng events để biết sự kiện của ai tạo
+-- ALTER TABLE events 
+-- ADD COLUMN organizer_id INT,
+-- ADD CONSTRAINT fk_event_organizer FOREIGN KEY (organizer_id) REFERENCES users(user_id);
+
+-- -- 3. Đảm bảo bảng ticket_types tồn tại (để phục vụ tính năng 1.3: Quản lý loại vé, giá vé)
+-- -- Nếu chưa có thì tạo mới, nếu có rồi thì bỏ qua
+-- CREATE TABLE IF NOT EXISTS ticket_types (
+--     ticket_type_id INT AUTO_INCREMENT PRIMARY KEY,
+--     event_id INT NOT NULL,
+--     name VARCHAR(100) NOT NULL, -- Ví dụ: VIP, GA, Early Bird
+--     price DECIMAL(10, 2) NOT NULL,
+--     quantity INT NOT NULL, -- Số lượng vé bán ra cho loại này
+--     sold_quantity INT DEFAULT 0, -- Số lượng đã bán
+--     FOREIGN KEY (event_id) REFERENCES events(event_id)
+-- );
