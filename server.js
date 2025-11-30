@@ -1,18 +1,26 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
-const authRoutes = require("./routes/authRoutes");
-
+require("dotenv").config();
 const app = express();
-const PORT = 3000;
-
-app.use(bodyParser.json());
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const authRoutes = require("./routes/authRoutes");
+const eventRoutes = require("./routes/eventRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
+const PORT = 3000;
+const authMiddleware = require("./middlewares/authMiddleware");
+app.use(bodyParser.json());
+app.use(cors());
+app.use("/public", express.static("public"));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/event", eventRoutes);
+app.use("/api/review", authMiddleware, reviewRoutes);
+const profileRoute = require("./routes/profileRoute");
+app.use("/api/profile", profileRoute);
+const ticketRoutes = require("./routes/ticketRoutes");
+app.use("/api/tickets", ticketRoutes);
 
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`Server running on port ${PORT}`)

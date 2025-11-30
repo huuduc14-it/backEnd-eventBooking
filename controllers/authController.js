@@ -3,12 +3,125 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const SECRET_KEY = "CHIECKHANGIOAM";
 
+// module.exports = {
+//   register: async (req, res) => {
+//     try {
+//       const { full_name, email, password_hash, phone } = req.body;
+
+//       // 1. Kiểm tra input
+//       if (!email || !password_hash) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Missing email or password",
+//         });
+//       }
+
+//       // 2. Hash password
+//       const hashedPassword = await bcrypt.hash(password_hash, 10);
+
+//       // 3. Lưu vào DB
+//       User.createUser(
+//         full_name,
+//         email,
+//         hashedPassword,
+//         phone,
+//         (err, result) => {
+//           if (err) {
+//             console.error("SQL ERROR:", err);
+//             return res.status(500).json({
+//               success: false,
+//               message: "Email đã tồn tại",
+//             });
+//           }
+
+//           // Lấy ID user mới tạo
+//           const newUserId = result.insertId;
+
+//           return res.json({
+//             success: true,
+//             message: "Đăng ký thành công",
+//             user: {
+//               id: newUserId,
+//               full_name: full_name,
+//               email: email,
+//               phone: phone,
+//             },
+//           });
+//         }
+//       );
+//     } catch (e) {
+//       console.error("REGISTER ERROR:", e);
+//       return res.status(500).json({
+//         success: false,
+//         message: "Server error",
+//       });
+//     }
+//   },
+
+//   login: (req, res) => {
+//     const { email, password_hash } = req.body;
+
+//     // 1. Validate input
+//     if (!email || !password_hash) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Missing email or password",
+//       });
+//     }
+
+//     // 2. Tìm user
+//     User.findByEmail(email, async (err, results) => {
+//       if (err) {
+//         return res.status(500).json({
+//           success: false,
+//           message: "Database error",
+//         });
+//       }
+
+//       if (results.length === 0) {
+//         return res.status(401).json({
+//           success: false,
+//           message: "Email không tồn tại",
+//         });
+//       }
+
+//       const user = results[0];
+
+//       // 3. So sánh mật khẩu
+//       const match = await bcrypt.compare(password_hash, user.password_hash);
+//       if (!match) {
+//         return res.status(401).json({
+//           success: false,
+//           message: "Sai mật khẩu",
+//         });
+//       }
+
+//       // 4. Tạo token JWT
+//       const token = jwt.sign(
+//         { id: user.user_id, email: user.email },
+//         process.env.JWT_SECRET,
+//         { expiresIn: "7d" }
+//       );
+
+//       // 5. Response cho Android
+//       return res.json({
+//         success: true,
+//         message: "Đăng nhập thành công",
+//         user: {
+//           id: user.user_id,
+//           full_name: user.full_name,
+//           email: user.email,
+//         },
+//         token: token,
+//       });
+//     });
+//   },
+// };
 module.exports = {
   register: async (req, res) => {
     try {
-      const { full_name, email, password_hash } = req.body;
+      const { full_name, email, password_hash, phone } = req.body;
 
-      // 1. Kiểm tra input
       if (!email || !password_hash) {
         return res.status(400).json({
           success: false,
@@ -16,34 +129,32 @@ module.exports = {
         });
       }
 
-      // 2. Hash password
+      // Hash password
       const hashedPassword = await bcrypt.hash(password_hash, 10);
 
-      // 3. Lưu vào DB
-      User.createUser(full_name, email, hashedPassword, (err, result) => {
-        if (err) {
-          console.error("SQL ERROR:", err);
-          return res.status(500).json({
-            success: false,
-            message: "Email đã tồn tại",
-          });
-        }
+      // Lưu user vào DB
+      await User.createUser(email, hashedPassword, full_name, phone);
 
-        // Lấy ID user mới tạo
-        const newUserId = result.insertId;
-
-        return res.json({
-          success: true,
-          message: "Đăng ký thành công",
-          user: {
-            id: newUserId,
-            full_name: full_name,
-            email: email,
-          },
-        });
+      return res.json({
+        success: true,
+        message: "Đăng ký thành công",
+        user: {
+          full_name,
+          email,
+          phone,
+        },
       });
-    } catch (e) {
-      console.error("REGISTER ERROR:", e);
+    } catch (err) {
+      console.error("REGISTER ERROR:", err);
+
+      // Kiểm tra duplicate email
+      if (err.code === "ER_DUP_ENTRY") {
+        return res.status(400).json({
+          success: false,
+          message: "Email đã tồn tại",
+        });
+      }
+
       return res.status(500).json({
         success: false,
         message: "Server error",
@@ -51,36 +162,27 @@ module.exports = {
     }
   },
 
-  login: (req, res) => {
-    const { email, password_hash } = req.body;
+  login: async (req, res) => {
+    try {
+      const { email, password_hash } = req.body;
 
-    // 1. Validate input
-    if (!email || !password_hash) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing email or password",
-      });
-    }
-
-    // 2. Tìm user
-    User.findByEmail(email, async (err, results) => {
-      if (err) {
-        return res.status(500).json({
+      if (!email || !password_hash) {
+        return res.status(400).json({
           success: false,
-          message: "Database error",
+          message: "Missing email or password",
         });
       }
 
-      if (results.length === 0) {
+      // Tìm user
+      const user = await User.findByEmail(email);
+      if (!user) {
         return res.status(401).json({
           success: false,
           message: "Email không tồn tại",
         });
       }
 
-      const user = results[0];
-
-      // 3. So sánh mật khẩu
+      // So sánh mật khẩu
       const match = await bcrypt.compare(password_hash, user.password_hash);
       if (!match) {
         return res.status(401).json({
@@ -89,39 +191,31 @@ module.exports = {
         });
       }
 
-      // 4. Tạo token JWT
+      // Tạo JWT
       const token = jwt.sign(
-        { id: user.id, email: user.email },
-        process.env.JWT_SECRET || "SECRET_KEY",
+        { user_id: user.user_id, email: user.email },
+        process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
 
-      // 5. Response cho Android
       return res.json({
         success: true,
         message: "Đăng nhập thành công",
         user: {
-          id: user.id,
+          id: user.user_id,
           full_name: user.full_name,
           email: user.email,
+          phone: user.phone,
+          avatar_url: user.avatar_url || null,
         },
-        token: token,
+        token,
       });
-    });
-  },
-  ViewAllEvent: (req, res) => {
-    User.getAllEvent((err, result) => {
-      if (err) {
-        console.log("Lỗi lấy danh sách sự kiện", err);
-        return res.status(500).json({
-          success: false,
-          message: "Lỗi server, không lấy được danh sách sự kiện",
-        });
-      }
-      return res.status(200).json({
-        success: true,
-        data: result,
+    } catch (err) {
+      console.error("LOGIN ERROR:", err);
+      return res.status(500).json({
+        success: false,
+        message: "Server error",
       });
-    });
+    }
   },
 };
