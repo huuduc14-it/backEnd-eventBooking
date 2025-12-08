@@ -1,7 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
-const SECRET_KEY = "CHIECKHANGIOAM";
+const JWT_SECRET = process.env.JWT_SECRET || "CHIECKHANGIOAM";
 
 // module.exports = {
 //   register: async (req, res) => {
@@ -133,7 +133,7 @@ module.exports = {
       const hashedPassword = await bcrypt.hash(password_hash, 10);
 
       // Lưu user vào DB
-      await User.createUser(email, hashedPassword, full_name, phone);
+      await User.createUser(full_name, email, hashedPassword, phone);
 
       return res.json({
         success: true,
@@ -194,7 +194,7 @@ module.exports = {
       // Tạo JWT
       const token = jwt.sign(
         { user_id: user.user_id, email: user.email },
-        process.env.JWT_SECRET,
+        JWT_SECRET,
         { expiresIn: "7d" }
       );
 

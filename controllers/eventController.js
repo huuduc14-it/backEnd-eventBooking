@@ -64,14 +64,12 @@ module.exports = {
     }
   },
 
-  getArtistsInfor: (req, res) => {
-    const event_id = req.params.event_id;
-    User.getArtists(event_id, (err, result) => {
-      if (err) {
-        return res.status(500).json({ message: "Lối server" });
-      }
+  getArtistsInfor: async (req, res) => {
+    try {
+      const event_id = req.params.event_id;
+      const result = await User.getArtists(event_id);
 
-      if (result.length === 0) {
+      if (!result || result.length === 0) {
         return res
           .status(404)
           .json({ message: "không tìm thấy nghệ sĩ nào trong sự kiện" });
@@ -81,7 +79,10 @@ module.exports = {
         message: "lấy danh sách nghệ sĩ thành công",
         artists: result,
       });
-    });
+    } catch (err) {
+      console.error("GET ARTISTS ERROR", err);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
   },
   // search: (req, res) => {
   //   const { keyword } = req.query;
