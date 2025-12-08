@@ -78,14 +78,18 @@ module.exports = {
       SELECT 
         e.event_id,
         e.title,
+        e.description,
         e.start_time,
+        e.location_name as location,
         e.thumbnail_url,
+        e.thumbnail_url as image_url,
+        e.category_id,
         COALESCE(SUM(tt.total_quantity - tt.remaining), 0) AS total_tickets_sold,
         COALESCE(SUM((tt.total_quantity - tt.remaining) * tt.price), 0) AS total_revenue
       FROM events e
       LEFT JOIN ticket_types tt ON e.event_id = tt.event_id
       WHERE e.organizer_id = ?
-      GROUP BY e.event_id
+      GROUP BY e.event_id, e.title, e.description, e.start_time, e.location_name, e.thumbnail_url, e.category_id
       ORDER BY e.start_time DESC
     `;
     const [rows] = await db.execute(sql, [organizerId]);
