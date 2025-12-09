@@ -8,26 +8,42 @@ module.exports = {
   // 1.1 Đăng ký Organizer
   register: async (req, res) => {
     try {
-      const { organization_name } = req.body;
+      const { organization_name, tax_code, address, bank_account, contact_email, contact_phone } = req.body;
       const userId = req.user.user_id;
 
-      if (!organization_name) {
-        return res.status(400).json({ message: "Vui lòng nhập tên tổ chức/doanh nghiệp" });
+      // Validate required fields
+      if (!organization_name || !tax_code || !address || !contact_email || !contact_phone) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Vui lòng điền đầy đủ thông tin bắt buộc (Tên tổ chức, Mã số thuế, Địa chỉ, Email liên hệ, SĐT liên hệ)" 
+        });
       }
 
-      await Organizer.registerOrganizer(userId, organization_name);
+      const profileData = {
+        organization_name,
+        tax_code,
+        address,
+        bank_account: bank_account || null,
+        contact_email,
+        contact_phone
+      };
 
-      res.json({ success: true, message: "Đăng ký thành công. Vui lòng chờ xác minh." });
+      await Organizer.registerOrganizer(userId, profileData);
+
+      res.json({ 
+        success: true, 
+        message: "Đăng ký Organizer thành công. Bạn có thể bắt đầu tạo sự kiện." 
+      });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Lỗi server" });
+      res.status(500).json({ success: false, message: "Lỗi server" });
     }
   },
 
   // 1.2 & 1.3 Tạo sự kiện mới kèm vé
   createEvent: async (req, res) => {
     try {
-      const organizerId = req.organizerId; // lấy từ middleware đã kiểm tra organizer
+      const userId = req.user.user_id; // lấy từ middleware đã kiểm tra organizer
       const { 
         title, description, start_time, location_name, thumbnail_url, category_id, // Thông tin sự kiện
         ticket_types // Mảng vé: [{name: "VIP", price: 500000, quantity: 100}, ...]
@@ -39,7 +55,7 @@ module.exports = {
 
       const eventData = { title, description, start_time, location_name, thumbnail_url, category_id };
       
-      const newEventId = await Organizer.createEvent(organizerId, eventData, ticket_types);
+      const newEventId = await Organizer.createEvent(userId, eventData, ticket_types);
 
       res.status(201).json({ success: true, message: "Tạo sự kiện thành công", event_id: newEventId });
     } catch (err) {
@@ -48,11 +64,11 @@ module.exports = {
     }
   },
 
-  // 1.4 Xem dashboard thống kê
+  // 1.4 Xem thống kê sự kiện
   getDashboard: async (req, res) => {
     try {
-      const organizerId = req.organizerId;
-      const stats = await Organizer.getEventStats(organizerId);
+      const userId = req.user.user_id;
+      const stats = await Organizer.getEventStats(userId);
       res.json({ success: true, data: stats });
     } catch (err) {
       console.error(err);
@@ -75,11 +91,11 @@ module.exports = {
   },
   updateEvent: async (req, res) => {
     try {
-      const organizerId = req.organizerId;
+      const userId = req.user.user_id;
       const eventId = req.params.event_id;
       const { title, description, start_time, location_name, thumbnail_url, category_id } = req.body;
 
-      const result = await Organizer.updateEvent(organizerId, eventId, {
+      const result = await Organizer.updateEvent(userId, eventId, {
         title, description, start_time, location_name, thumbnail_url, category_id
       });
 
@@ -97,9 +113,9 @@ module.exports = {
   // --- 2.3 Quản lý khách tham gia (View List) ---
   getAttendees: async (req, res) => {
     try {
-      const organizerId = req.organizerId;
+      const userId = req.user.user_id;
       const eventId = req.params.event_id;
-      const attendees = await Organizer.getEventAttendees(organizerId, eventId);
+      const attendees = await Organizer.getEventAttendees(userId, eventId);
       res.json({ success: true, data: attendees });
     } catch (err) {
         console.error(err);
@@ -110,9 +126,9 @@ module.exports = {
   // --- 2.3 Export Excel ---
   exportAttendeesExcel: async (req, res) => {
     try {
-      const organizerId = req.organizerId;
+      const userId = req.user.user_id;
       const eventId = req.params.event_id;
-      const attendees = await Organizer.getEventAttendees(organizerId, eventId);
+      const attendees = await Organizer.getEventAttendees(userId, eventId);
 
       const workbook = new ExcelJS.Workbook();
       const sheet = workbook.addWorksheet('Attendees');
@@ -144,9 +160,9 @@ module.exports = {
   // --- 2.3 Export PDF ---
   exportAttendeesPDF: async (req, res) => {
     try {
-      const organizerId = req.organizerId;
+      const userId = req.user.user_id;
       const eventId = req.params.event_id;
-      const attendees = await Organizer.getEventAttendees(organizerId, eventId);
+      const attendees = await Organizer.getEventAttendees(userId, eventId);
 
       const doc = new PDFDocument();
       
@@ -178,7 +194,7 @@ module.exports = {
         return res.status(400).json({ message: "Vui lòng upload file Excel" });
       }
 
-      const organizerId = req.organizerId;
+      const userId = req.user.user_id;
       const eventId = req.body.event_id;
       const ticketTypeId = req.body.ticket_type_id; // Loại vé gán cho danh sách này
       const price = req.body.price || 0;
@@ -205,7 +221,7 @@ module.exports = {
       });
 
       if (attendeesToImport.length > 0) {
-        await Organizer.createBulkBookings(organizerId, eventId, attendeesToImport);
+        await Organizer.createBulkBookings(userId, eventId, attendeesToImport);
         return res.json({ 
             success: true, 
             message: `Đã import thành công ${attendeesToImport.length} vé.` 

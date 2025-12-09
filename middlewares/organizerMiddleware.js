@@ -1,6 +1,6 @@
 const db = require("../config/db");
 
-// Kiểm tra user có phải organizer đã được xác minh chưa
+// Kiểm tra user có phải organizer (có hồ sơ trong organizer_profiles) chưa
 module.exports = async (req, res, next) => {
     try {
         if (!req.user || !req.user.user_id) {
@@ -8,22 +8,39 @@ module.exports = async (req, res, next) => {
         }
 
         const userId = req.user.user_id;
-        const [rows] = await db.execute(
-            "SELECT organizer_id, verified FROM organizers WHERE user_id = ?",
+        
+        // Kiểm tra user có role organizer trong bảng users
+        const [userRows] = await db.execute(
+            "SELECT role, organizer_profile_completed FROM users WHERE user_id = ?",
             [userId]
         );
 
-        if (rows.length === 0) {
-            return res.status(403).json({ success: false, message: "Bạn chưa đăng ký tài khoản tổ chức" });
+        if (userRows.length === 0) {
+            return res.status(403).json({ success: false, message: "Người dùng không tồn tại" });
         }
 
-        const organizer = rows[0];
-        if (!organizer.verified) {
-            return res.status(403).json({ success: false, message: "Tài khoản tổ chức chưa được xác minh" });
+        const user = userRows[0];
+        if (user.role !== 'organizer' || !user.organizer_profile_completed) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Bạn chưa đăng ký tài khoản tổ chức hoặc chưa hoàn thành hồ sơ" 
+            });
         }
 
-        // Gán organizerId để controller dùng
-        req.organizerId = organizer.organizer_id;
+        // Kiểm tra organizer_profiles có tồn tại
+        const [profileRows] = await db.execute(
+            "SELECT profile_id FROM organizer_profiles WHERE user_id = ?",
+            [userId]
+        );
+
+        if (profileRows.length === 0) {
+            return res.status(403).json({ 
+                success: false, 
+                message: "Không tìm thấy hồ sơ tổ chức" 
+            });
+        }
+
+        // Cho phép tiếp tục
         next();
     } catch (err) {
         console.error("Organizer middleware error", err);
