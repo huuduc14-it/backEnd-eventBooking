@@ -50,13 +50,14 @@ module.exports = {
 
       res.status(201).json({
         success: true,
-        message: "Đặt vé thành công",
+        message: "Đặt vé thành công. Vui lòng thanh toán để hoàn tất.",
         data: {
           booking_id: result.bookingId,
           total_amount: result.totalAmount,
           payment_status: "pending",
           booking_info: booking,
-          tickets: tickets
+          tickets: tickets,
+          next_step: "Sử dụng endpoint /api/payment/create để tạo link thanh toán VNPay"
         }
       });
     } catch (err) {
@@ -68,7 +69,7 @@ module.exports = {
     }
   },
 
-  // Xác nhận thanh toán (Mock - thực tế sẽ là webhook từ payment gateway)
+  // Xác nhận thanh toán (Deprecated - sử dụng VNPay payment flow)
   confirmPayment: async (req, res) => {
     try {
       const { booking_id } = req.body;

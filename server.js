@@ -25,6 +25,12 @@ const organizerRoutes = require("./routes/organizerRoutes");
 app.use("/api/organizer", organizerRoutes);
 const bookingRoutes = require("./routes/bookingRoutes");
 app.use("/api", bookingRoutes);
+const seatRoutes = require("./routes/seatRoutes");
+app.use("/api", seatRoutes);
+const promotionRoutes = require("./routes/promotionRoutes");
+app.use("/api", promotionRoutes);
+const paymentRoutes = require("./routes/paymentRoutes");
+app.use("/api", paymentRoutes);
 
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`Server running on port ${PORT}`)

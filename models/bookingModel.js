@@ -61,12 +61,32 @@ module.exports = {
 
       // Tạo booking_items và tickets
       for (const [ticketTypeId, info] of Object.entries(ticketTypeCounts)) {
+        const itemSeats = items.find(item => item.ticket_type_id == ticketTypeId)?.seat_ids || [];
+        
         for (let i = 0; i < info.quantity; i++) {
+          const seatId = itemSeats[i] || null;
+          
+          // Nếu có seat_id, kiểm tra ghế còn trống
+          if (seatId) {
+            const [[seat]] = await connection.execute(
+              `SELECT seat_id, is_available FROM seats WHERE seat_id = ? FOR UPDATE`,
+              [seatId]
+            );
+            if (!seat || !seat.is_available) {
+              throw new Error(`Ghế ${seatId} không còn trống`);
+            }
+            // Đánh dấu ghế đã được đặt
+            await connection.execute(
+              `UPDATE seats SET is_available = FALSE WHERE seat_id = ?`,
+              [seatId]
+            );
+          }
+          
           // Tạo booking_item
           const [itemResult] = await connection.execute(
             `INSERT INTO booking_items (booking_id, ticket_type_id, seat_id, price)
-             VALUES (?, ?, NULL, ?)`,
-            [bookingId, ticketTypeId, info.price]
+             VALUES (?, ?, ?, ?)`,
+            [bookingId, ticketTypeId, seatId, info.price]
           );
           const itemId = itemResult.insertId;
 

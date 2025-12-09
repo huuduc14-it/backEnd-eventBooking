@@ -190,9 +190,9 @@ INSERT INTO event_artists (event_id, artist_id) VALUES
 (1, 2),
 (1, 3);
 
---thêm cột role và is_verifiedd vào user 
+--thêm cột role và is_verified vào user (không cần admin)
 ALTER TABLE users 
-ADD COLUMN role ENUM('user', 'organizer', 'admin') DEFAULT 'user',
+ADD COLUMN role ENUM('user', 'organizer') DEFAULT 'user',
 ADD COLUMN is_verified BOOLEAN DEFAULT FALSE,
 ADD COLUMN organization_name VARCHAR(255) NULL;
 -- 2. Thêm cột 'organizer_id' vào bảng events để biết sự kiện của ai tạo
