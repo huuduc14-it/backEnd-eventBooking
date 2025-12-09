@@ -1,0 +1,930 @@
+{
+  "info": {
+    "name": "Event Booking API - Complete Test Collection",
+    "description": "Full API testing for Event Booking backend with all endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "organizer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "event_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "booking_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "full_name",
+                  "value": "Test User",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "testuser@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password_hash",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has token\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.token).to.exist;",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "testuser@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password_hash",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register Organizer User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "full_name",
+                  "value": "Organizer User",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "organizer@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password_hash",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Organizer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.token) {",
+                  "    pm.collectionVariables.set(\"organizer_token\", jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "email",
+                  "value": "organizer@example.com",
+                  "type": "text"
+                },
+                {
+                  "key": "password_hash",
+                  "value": "password123",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Organizer Registration",
+      "item": [
+        {
+          "name": "Register as Organizer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has success true\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"organization_name\": \"Test Company Ltd\",\n    \"tax_code\": \"1234567890\",\n    \"address\": \"123 Test Street, HCM City\",\n    \"bank_account\": \"9876543210\",\n    \"contact_email\": \"contact@testcompany.com\",\n    \"contact_phone\": \"0123456789\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/organizer/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "register"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Event Management",
+      "item": [
+        {
+          "name": "Create Event with Tickets",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.event_id) {",
+                  "    pm.collectionVariables.set(\"event_id\", jsonData.event_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Test Concert 2025\",\n    \"description\": \"Amazing music event\",\n    \"location_name\": \"National Stadium\",\n    \"address\": \"456 Main St, District 7, HCM City\",\n    \"start_time\": \"2025-12-25 19:00:00\",\n    \"end_time\": \"2025-12-25 23:00:00\",\n    \"category_id\": 1,\n    \"thumbnail_url\": \"https://example.com/image.jpg\",\n    \"video_url\": \"https://www.youtube.com/watch?v=example\",\n    \"ticket_types\": [\n        {\n            \"name\": \"VIP\",\n            \"price\": 500000,\n            \"quantity\": 100,\n            \"description\": \"VIP seats with best view\"\n        },\n        {\n            \"name\": \"Regular\",\n            \"price\": 200000,\n            \"quantity\": 500,\n            \"description\": \"Standard seats\"\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/organizer/events/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "events", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Organizer Dashboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has data array\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/organizer/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "dashboard"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "View All Events (Public)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/event/viewAll",
+              "host": ["{{base_url}}"],
+              "path": ["api", "event", "viewAll"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/event/detail/{{event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "event", "detail", "{{event_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Test Concert 2025 - Updated\",\n    \"description\": \"Amazing music event - Updated description\",\n    \"location_name\": \"National Stadium\",\n    \"address\": \"456 Main St, District 7, HCM City - Updated\",\n    \"start_time\": \"2025-12-25 19:00:00\",\n    \"end_time\": \"2025-12-26 01:00:00\",\n    \"thumbnail_url\": \"https://example.com/updated-image.jpg\",\n    \"video_url\": \"https://www.youtube.com/watch?v=updated\",\n    \"category_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/organizer/events/{{event_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "events", "{{event_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Ticket Management",
+      "item": [
+        {
+          "name": "Get Ticket Types for Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Has ticket types\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.eql(true);",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/events/{{event_id}}/ticket-types",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "{{event_id}}", "ticket-types"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Ticket Quantity",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "ticket_type_id",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "new_quantity",
+                  "value": "150",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/ticket-types/update-quantity",
+              "host": ["{{base_url}}"],
+              "path": ["api", "ticket-types", "update-quantity"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Booking System",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.success && jsonData.data && jsonData.data.booking_id) {",
+                  "    pm.collectionVariables.set(\"booking_id\", jsonData.data.booking_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"event_id\": {{event_id}},\n    \"items\": [\n        {\n            \"ticket_type_id\": 1,\n            \"quantity\": 2\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/bookings",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Booking Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/bookings/{{booking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "{{booking_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Payment System (VNPay)",
+      "item": [
+        {
+          "name": "Create Payment URL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Has payment URL\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.paymentUrl).to.exist;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"bookingId\": {{booking_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payment/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payment", "create"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Query Transaction Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payment/query/{{booking_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payment", "query", "{{booking_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Seat Management",
+      "item": [
+        {
+          "name": "Create Seat Map",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"mapJson\": {\n        \"rows\": 10,\n        \"columns\": 20,\n        \"sections\": [\"A\", \"B\", \"C\"]\n    },\n    \"seats\": [\n        {\n            \"section\": \"A\",\n            \"row_label\": \"1\",\n            \"seat_number\": \"1\",\n            \"ticket_type_id\": 1\n        },\n        {\n            \"section\": \"A\",\n            \"row_label\": \"1\",\n            \"seat_number\": \"2\",\n            \"ticket_type_id\": 1\n        }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/events/{{event_id}}/seat-map",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "{{event_id}}", "seat-map"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Available Seats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/events/{{event_id}}/seats/available",
+              "host": ["{{base_url}}"],
+              "path": ["api", "events", "{{event_id}}", "seats", "available"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reserve Seats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"seatIds\": [1, 2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/seats/reserve",
+              "host": ["{{base_url}}"],
+              "path": ["api", "seats", "reserve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Promotions",
+      "item": [
+        {
+          "name": "Create Promotion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"XMAS2025\",\n    \"description\": \"Christmas discount 20%\",\n    \"discount_type\": \"percent\",\n    \"discount_value\": 20,\n    \"start_date\": \"2025-12-01\",\n    \"end_date\": \"2025-12-31\",\n    \"event_id\": {{event_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/promotions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "promotions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Promotion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": \"XMAS2025\",\n    \"eventId\": {{event_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/promotions/validate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "promotions", "validate"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Apply Promotion to Booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"bookingId\": {{booking_id}},\n    \"promoCode\": \"XMAS2025\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/bookings/apply-promotion",
+              "host": ["{{base_url}}"],
+              "path": ["api", "bookings", "apply-promotion"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Promotions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/promotions/active",
+              "host": ["{{base_url}}"],
+              "path": ["api", "promotions", "active"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Attendee Management",
+      "item": [
+        {
+          "name": "Get Event Attendees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/organizer/events/{{event_id}}/attendees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "events", "{{event_id}}", "attendees"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Attendees Excel",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/organizer/events/{{event_id}}/export/excel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "events", "{{event_id}}", "export", "excel"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Export Attendees PDF",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{organizer_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/organizer/events/{{event_id}}/export/pdf",
+              "host": ["{{base_url}}"],
+              "path": ["api", "organizer", "events", "{{event_id}}", "export", "pdf"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Check-in System",
+      "item": [
+        {
+          "name": "Check-in Ticket by QR Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"qr_code\": \"QR-1733700000000-abc123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tickets/check-in",
+              "host": ["{{base_url}}"],
+              "path": ["api", "tickets", "check-in"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -45,7 +45,7 @@ module.exports = {
     try {
       const userId = req.user.user_id; // lấy từ middleware đã kiểm tra organizer
       const { 
-        title, description, start_time, location_name, thumbnail_url, category_id, // Thông tin sự kiện
+        title, description, start_time, end_time, location_name, address, thumbnail_url, video_url, category_id, // Thông tin sự kiện
         ticket_types // Mảng vé: [{name: "VIP", price: 500000, quantity: 100}, ...]
       } = req.body;
 
@@ -53,7 +53,7 @@ module.exports = {
         return res.status(400).json({ message: "Thiếu thông tin bắt buộc (Tên, thời gian hoặc loại vé)" });
       }
 
-      const eventData = { title, description, start_time, location_name, thumbnail_url, category_id };
+      const eventData = { title, description, start_time, end_time, location_name, address, thumbnail_url, video_url, category_id };
       
       const newEventId = await Organizer.createEvent(userId, eventData, ticket_types);
 
@@ -93,10 +93,10 @@ module.exports = {
     try {
       const userId = req.user.user_id;
       const eventId = req.params.event_id;
-      const { title, description, start_time, location_name, thumbnail_url, category_id } = req.body;
+      const { title, description, start_time, end_time, location_name, address, thumbnail_url, video_url, category_id } = req.body;
 
       const result = await Organizer.updateEvent(userId, eventId, {
-        title, description, start_time, location_name, thumbnail_url, category_id
+        title, description, start_time, end_time, location_name, address, thumbnail_url, video_url, category_id
       });
 
       if (result.affectedRows === 0) {

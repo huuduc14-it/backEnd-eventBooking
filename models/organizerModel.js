@@ -52,15 +52,18 @@ module.exports = {
 
       // Insert Event với user_id (người tạo event)
       const eventSql = `
-        INSERT INTO events (title, description, start_time, location_name, thumbnail_url, category_id, user_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO events (title, description, start_time, end_time, location_name, address, thumbnail_url, video_url, category_id, user_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const [eventResult] = await connection.execute(eventSql, [
         eventData.title,
         eventData.description,
         eventData.start_time,
+        eventData.end_time || null,
         eventData.location_name,
+        eventData.address || null,
         eventData.thumbnail_url,
+        eventData.video_url || null,
         eventData.category_id,
         userId,
       ]);
@@ -211,14 +214,17 @@ module.exports = {
     if (!isOwner) return { affectedRows: 0 };
 
     const [result] = await db.execute(
-      `UPDATE events SET title = ?, description = ?, start_time = ?, location_name = ?, thumbnail_url = ?, category_id = ?
+      `UPDATE events SET title = ?, description = ?, start_time = ?, end_time = ?, location_name = ?, address = ?, thumbnail_url = ?, video_url = ?, category_id = ?
        WHERE event_id = ? AND user_id = ?`,
       [
         data.title,
         data.description,
         data.start_time,
+        data.end_time || null,
         data.location_name,
+        data.address || null,
         data.thumbnail_url,
+        data.video_url || null,
         data.category_id,
         eventId,
         userId,
