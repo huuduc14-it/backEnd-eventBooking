@@ -31,6 +31,8 @@ const promotionRoutes = require("./routes/promotionRoutes");
 app.use("/api", promotionRoutes);
 const paymentRoutes = require("./routes/paymentRoutes");
 app.use("/api", paymentRoutes);
+const categoryRoutes = require("./routes/categoryRoutes");
+app.use("/api/categories", categoryRoutes);
 
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`Server running on port ${PORT}`)
