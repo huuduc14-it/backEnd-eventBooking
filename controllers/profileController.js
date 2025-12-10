@@ -14,7 +14,7 @@ module.exports = {
 
       // Lấy thông tin user
       const [userRows] = await db.execute(
-        "SELECT user_id, full_name, email, avatar_url, phone FROM users WHERE user_id = ?",
+        "SELECT user_id, full_name, email, avatar_url, phone, role FROM users WHERE user_id = ?",
         [userId]
       );
 

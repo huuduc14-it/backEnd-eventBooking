@@ -11,6 +11,5 @@ const db = mysql
     connectionLimit: 10,
     queueLimit: 0,
   })
-  .promise(); // <<< cực kỳ quan trọng
-
+  .promise();
 module.exports = db;

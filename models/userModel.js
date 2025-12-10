@@ -1,13 +1,18 @@
 const db = require("../config/db");
 
 module.exports = {
+  updateRole: async (userId, newRole) => {
+    const sql = `UPDATE users SET role = ? WHERE user_id = ?`;
+    await db.execute(sql, [newRole, userId]);
+    return true;
+  },
   // Tạo user
-  createUser: async (email, hashedPassword, name) => {
+  createUser: async (name, email, hashedPassword, phone) => {
     const sql = `
-      INSERT INTO users (full_name, email, password_hash)
-      VALUES (?, ?, ?)
+      INSERT INTO users (full_name, email, password_hash, phone)
+      VALUES (?, ?, ?, ?)
     `;
-    const params = [name, email, hashedPassword]; // đúng thứ tự cột
+    const params = [name, email, hashedPassword, phone];
     await db.execute(sql, params);
     return { message: "User created successfully" };
   },
